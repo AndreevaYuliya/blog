@@ -1,8 +1,8 @@
 import { FC } from "react";
 
-const LoginForm: FC = () => {
+const RegisterForm: FC = () => {
   return <div>Login Form Component</div>;
 };
 
-export default LoginForm;
+export default RegisterForm;
 
