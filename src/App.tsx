@@ -19,7 +19,7 @@ const App: FC = () => {
     <BrowserRouter>
       <Provider store={store}>
         <Routes>
-          <Route path={routes.StripePage} element={<StripePage />} />
+          {/* <Route path={routes.StripePage} element={<StripePage />} /> */}
           <Route
             path="/protected"
             element={
