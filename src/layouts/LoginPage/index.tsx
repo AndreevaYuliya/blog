@@ -1,17 +1,16 @@
 import { FC } from "react";
 
-import { Box } from "@mui/material";
-import { Formik } from "formik";
-
+import Container from "../../components/Container";
 import Header from "../../components/Header";
+import LoginForm from "../../components/LoginForm";
 
 const LoginPage: FC = () => {
   return (
-    <Box>
-      <Header title="Login Page" />
+    <Container>
+      <Header title="Login Page" goBackButton />
 
-      <Formik initialValues={{}} onSubmit={() => {}} type="login"></Formik>
-    </Box>
+      <LoginForm />
+    </Container>
   );
 };
 

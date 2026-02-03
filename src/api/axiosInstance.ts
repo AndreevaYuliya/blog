@@ -1,5 +1,6 @@
 import axios from "axios";
-import { history } from "../navigate";
+
+import routes from "../routes/routes";
 
 const axiosInstance = axios.create({
   baseURL: "",
@@ -27,9 +28,10 @@ axiosInstance.interceptors.response.use(
 
   (error) => {
     if (error.response && error.response.status === 401) {
+      localStorage.removeItem("user");
       localStorage.removeItem("token");
 
-      history.push("/login");
+      window.location.replace(routes.login);
     }
 
     return Promise.reject(error);
@@ -37,4 +39,3 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-

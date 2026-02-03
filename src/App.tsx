@@ -4,8 +4,6 @@ import { Provider } from "react-redux";
 
 import { store } from "./store/store";
 import routes from "./routes/routes";
-
-import "./App.css";
 import ProtectedRoutes from "./routes/ProtectedRoutes";
 import StripePage from "./layouts/StripePage";
 import HomePage from "./layouts/HomePage";
@@ -19,19 +17,28 @@ const App: FC = () => {
     <BrowserRouter>
       <Provider store={store}>
         <Routes>
-          {/* <Route path={routes.StripePage} element={<StripePage />} /> */}
+          <Route path={routes.stripe} element={<StripePage />} />
           <Route
-            path="/protected"
+            path={routes.home}
             element={
               <ProtectedRoutes>
-                <Route path={routes.HomePage} element={<HomePage />} />
-                <Route path={routes.NewPostPage} element={<NewPostPage />} />
+                <HomePage />
               </ProtectedRoutes>
             }
           />
-          <Route path={routes.LoginPage} element={<LoginPage />} />
-          <Route path={routes.RegisterPage} element={<RegisterPage />} />
-          <Route path={routes.NotFound} element={<NotFound />} />
+
+          <Route
+            path={routes.newPost}
+            element={
+              <ProtectedRoutes>
+                <NewPostPage />
+              </ProtectedRoutes>
+            }
+          />
+
+          <Route path={routes.login} element={<LoginPage />} />
+          <Route path={routes.register} element={<RegisterPage />} />
+          <Route path={routes.notFound} element={<NotFound />} />
         </Routes>
       </Provider>
     </BrowserRouter>
