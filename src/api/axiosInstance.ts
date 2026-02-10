@@ -2,9 +2,10 @@ import axios from "axios";
 
 import routes from "../routes/routes";
 
+import { BASE_URL } from "./constants";
+
 const axiosInstance = axios.create({
-  baseURL: "",
-  headers: {},
+  baseURL: BASE_URL,
 });
 
 axiosInstance.interceptors.request.use(
@@ -28,7 +29,6 @@ axiosInstance.interceptors.response.use(
 
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem("user");
       localStorage.removeItem("token");
 
       window.location.replace(routes.login);

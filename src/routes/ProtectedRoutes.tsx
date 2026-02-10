@@ -1,13 +1,12 @@
-import { FC, ReactNode, useEffect, useState } from "react";
+import { FC, ReactElement } from "react";
 import { Navigate } from "react-router";
 
-import { useAppDispatch, useAppSelector } from "../store/store";
-import { setUser } from "../store/slices/userSlice";
+import { useAppSelector } from "../store/store";
 
 import routes from "./routes";
 
 type Props = {
-  children: ReactNode;
+  children: ReactElement;
   isAllowed?: boolean;
   redirectPath?: string;
 };
@@ -15,33 +14,16 @@ type Props = {
 const ProtectedRoutes: FC<Props> = (props) => {
   const { children, isAllowed, redirectPath } = props;
 
-  const isAuthenticated = useAppSelector((state) => state.user.user !== null);
+  const user = useAppSelector((state) => state.user.user);
+  const token = localStorage.getItem("token");
 
-  const dispatch = useAppDispatch();
-
-  const [isLoading, setIsLoading] = useState(true);
-
-  const allowed = isAllowed ?? isAuthenticated;
-
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-
-    if (user) {
-      dispatch(setUser(JSON.parse(user)));
-    }
-
-    setIsLoading(false);
-  }, [dispatch]);
-
-  if (isLoading) {
-    return null;
-  }
+  const allowed = isAllowed ?? (Boolean(user) && Boolean(token));
 
   if (!allowed) {
     return <Navigate to={redirectPath || routes.login} replace />;
   }
 
-  return <>{children}</>;
+  return children;
 };
 
 export default ProtectedRoutes;

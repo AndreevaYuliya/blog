@@ -12,24 +12,31 @@ import {
 } from "@mui/material";
 
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Formik, Form } from "formik";
+
+import { Formik } from "formik";
 import { TextField } from "formik-mui";
 import { object, string, InferType, ref } from "yup";
 
-import { registerUser } from "../api/userActions";
+import { logInUser, registerUser } from "../api/userActions";
 import { useAppDispatch } from "../store/store";
 import { setUser } from "../store/slices/userSlice";
+import { useAlertContext } from "../providers/AlertContext";
 import routes from "../routes/routes";
 
-import { StyledField } from "../styles";
+import { StyledField, StyledForm } from "../styles/muiStyles";
+import commonStyles from "../styles/commonStyles";
 
 let RegisterSchema = object({
-  userName: string().required("Required"),
-  login: string(),
-  email: string().email("Invalid email address").required("Required"),
-  password: string()
+  username: string()
+    .matches(/^\S+$/, "Username cannot contain spaces")
+    .min(3, "Username must be at least 3 characters long")
     .required("Required")
-    .min(6, "Password must be at least 6 characters long"),
+    .trim(),
+  password: string()
+    .matches(/\S/, "Password cannot be just whitespace")
+    .min(6, "Password must be at least 6 characters long")
+    .required("Required")
+    .trim(),
   confirmPassword: string()
     .oneOf([ref("password"), ""], "Passwords must match")
     .required("Required"),
@@ -37,6 +44,8 @@ let RegisterSchema = object({
 
 const RegisterForm: FC = () => {
   const navigate = useNavigate();
+
+  const { showAlert } = useAlertContext();
 
   const dispatch = useAppDispatch();
 
@@ -53,31 +62,34 @@ const RegisterForm: FC = () => {
 
   const onSubmit = async (values: InferType<typeof RegisterSchema>) => {
     try {
-      const user = await registerUser(
-        values.userName,
-        values.login,
-        values.email,
-        values.password,
-      );
+      const userData = {
+        username: values.username,
+        password: values.password,
+      };
 
-      dispatch(setUser(user));
+      await registerUser(userData);
+
+      const login = await logInUser(userData);
+
+      showAlert("Registration successful", "success");
+
+      dispatch(setUser({ id: login.userId, username: login.userName }));
 
       navigate(routes.home);
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message || "Registration failed. Please try again."
+          : "Registration failed. Please try again.";
 
-      console.error("Failed to Register:", error);
+      showAlert(message, "error");
     }
   };
 
   return (
     <Formik
       initialValues={{
-        userName: "",
-        login: "",
-        email: "",
+        username: "",
         password: "",
         confirmPassword: "",
       }}
@@ -85,47 +97,15 @@ const RegisterForm: FC = () => {
       onSubmit={onSubmit}
     >
       {({ submitForm, isSubmitting, touched, errors, isValid, dirty }) => (
-        <Form
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 15,
-            boxSizing: "border-box",
-            borderRadius: 10,
-            boxShadow: "0 0 20px rgba(0, 0, 0, 0.2)",
-            padding: 20,
-            width: 340,
-            marginTop: 50,
-          }}
-        >
+        <StyledForm>
           <StyledField
             component={TextField}
-            name="userName"
+            name="username"
             type="text"
-            label="Name"
-            placeholder="Enter your name"
-            error={touched.userName && Boolean(errors.userName)}
-            helperText={touched.userName && errors.userName}
-          />
-
-          <StyledField
-            component={TextField}
-            name="login"
-            type="text"
-            label="Login"
-            placeholder="Enter your login"
-            error={touched.login && Boolean(errors.login)}
-            helperText={touched.login && errors.login}
-          />
-
-          <StyledField
-            component={TextField}
-            name="email"
-            type="email"
-            label="Email"
-            placeholder="Enter your email"
-            error={touched.email && Boolean(errors.email)}
-            helperText={touched.email && errors.email}
+            label="Username"
+            placeholder="Enter your username"
+            error={touched.username && Boolean(errors.username)}
+            helperText={touched.username && errors.username}
           />
 
           <StyledField
@@ -142,19 +122,20 @@ const RegisterForm: FC = () => {
                   {showPassword ? (
                     <Visibility
                       onClick={handleClickShowPassword}
-                      sx={{
-                        cursor: "pointer",
-                        color: colors.green[500],
-                      }}
+                      sx={
+                        touched.password && Boolean(errors.password)
+                          ? commonStyles.error
+                          : commonStyles.iconInput
+                      }
                     />
                   ) : (
                     <VisibilityOff
                       onClick={handleClickShowPassword}
-                      sx={{
-                        cursor: "pointer",
-                        "&:hover": { color: colors.green[300] },
-                        color: colors.green[500],
-                      }}
+                      sx={
+                        touched.password && Boolean(errors.password)
+                          ? commonStyles.error
+                          : commonStyles.iconInput
+                      }
                     />
                   )}
                 </InputAdornment>
@@ -176,20 +157,22 @@ const RegisterForm: FC = () => {
                   {showConfirmPassword ? (
                     <Visibility
                       onClick={handleClickShowConfirmPassword}
-                      sx={{
-                        cursor: "pointer",
-                        color: colors.green[500],
-                        "&:hover": { color: colors.green[300] },
-                      }}
+                      sx={
+                        touched.confirmPassword &&
+                        Boolean(errors.confirmPassword)
+                          ? commonStyles.error
+                          : commonStyles.iconInput
+                      }
                     />
                   ) : (
                     <VisibilityOff
                       onClick={handleClickShowConfirmPassword}
-                      sx={{
-                        cursor: "pointer",
-                        color: colors.green[500],
-                        "&:hover": { color: colors.green[300] },
-                      }}
+                      sx={
+                        touched.confirmPassword &&
+                        Boolean(errors.confirmPassword)
+                          ? commonStyles.error
+                          : commonStyles.iconInput
+                      }
                     />
                   )}
                 </InputAdornment>
@@ -201,12 +184,12 @@ const RegisterForm: FC = () => {
             type="submit"
             variant="contained"
             color="success"
+            sx={commonStyles.button}
             disabled={isSubmitting || !isValid || !dirty}
-            sx={{ height: 45, boxSizing: "border-box" }}
             onClick={submitForm}
           >
             {isSubmitting ? (
-              <CircularProgress size={24} />
+              <CircularProgress size={24} color="success" />
             ) : (
               <Typography variant="button">Register</Typography>
             )}
@@ -216,7 +199,7 @@ const RegisterForm: FC = () => {
             <Typography
               variant="body2"
               component="span"
-              sx={{ marginRight: 1 }}
+              marginRight={1}
               color={colors.grey[700]}
             >
               Already have an account?
@@ -224,13 +207,13 @@ const RegisterForm: FC = () => {
 
             <Link
               variant="button"
-              sx={{ cursor: "pointer", color: colors.green[300] }}
+              sx={commonStyles.link}
               onClick={() => navigate(routes.login)}
             >
               Login
             </Link>
           </Box>
-        </Form>
+        </StyledForm>
       )}
     </Formik>
   );

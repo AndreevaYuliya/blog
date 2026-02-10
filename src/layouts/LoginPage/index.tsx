@@ -1,16 +1,19 @@
 import { FC } from "react";
 
-import Container from "../../components/Container";
-import Header from "../../components/Header";
 import LoginForm from "../../components/LoginForm";
+import PageContainer from "../../components/PageContainer";
+import ContentContainer from "../../components/ContentContainer";
+import ControlBar from "../../components/ControlBar";
 
 const LoginPage: FC = () => {
   return (
-    <Container>
-      <Header title="Login Page" goBackButton />
+    <PageContainer>
+      <ControlBar title="Login Page" />
 
-      <LoginForm />
-    </Container>
+      <ContentContainer>
+        <LoginForm />
+      </ContentContainer>
+    </PageContainer>
   );
 };
 

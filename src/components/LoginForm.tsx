@@ -5,13 +5,14 @@ import {
   Box,
   Button,
   CircularProgress,
-  colors,
   InputAdornment,
   Link,
   Typography,
 } from "@mui/material";
+
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Formik, Form } from "formik";
+
+import { Formik } from "formik";
 import { TextField } from "formik-mui";
 import { object, string, InferType } from "yup";
 
@@ -19,18 +20,28 @@ import { logInUser } from "../api/userActions";
 import { useAppDispatch } from "../store/store";
 import { setUser } from "../store/slices/userSlice";
 import routes from "../routes/routes";
+import { useAlertContext } from "../providers/AlertContext";
 
-import { StyledField } from "../styles";
+import { StyledField, StyledForm } from "../styles/muiStyles";
+import commonStyles from "../styles/commonStyles";
 
 let LoginSchema = object({
-  email: string().email("Invalid email address").required("Required"),
-  password: string()
+  username: string()
+    .matches(/^\S+$/, "Username cannot contain spaces")
+    .min(3, "Username must be at least 3 characters long")
     .required("Required")
-    .min(6, "Password must be at least 6 characters long"),
+    .trim(),
+  password: string()
+    .matches(/\S/, "Password cannot be just whitespace")
+    .min(6, "Password must be at least 6 characters long")
+    .required("Required")
+    .trim(),
 });
 
 const LoginForm: FC = () => {
   const navigate = useNavigate();
+
+  const { showAlert } = useAlertContext();
 
   const dispatch = useAppDispatch();
 
@@ -41,51 +52,42 @@ const LoginForm: FC = () => {
 
   const onSubmit = async (values: InferType<typeof LoginSchema>) => {
     try {
-      const user = await logInUser(values.email, values.password);
+      const userData = { username: values.username, password: values.password };
 
-      dispatch(setUser(user));
+      const user = await logInUser(userData);
+
+      dispatch(setUser({ id: user.userId, username: user.userName }));
 
       navigate(routes.home);
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message || "Login failed. Please try again."
+          : "Login failed. Please try again.";
 
-      console.error("Failed to login:", error);
+      showAlert(message, "error");
     }
   };
 
   return (
     <Formik
       initialValues={{
-        email: "",
+        username: "",
         password: "",
       }}
       validationSchema={LoginSchema}
       onSubmit={onSubmit}
     >
       {({ submitForm, isSubmitting, touched, errors, isValid, dirty }) => (
-        <Form
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 15,
-            boxSizing: "border-box",
-            borderRadius: 10,
-            boxShadow: "0 0 20px rgba(0, 0, 0, 0.2)",
-            padding: 20,
-            width: 340,
-            marginTop: 50,
-          }}
-        >
+        <StyledForm>
           <StyledField
             component={TextField}
-            name="email"
-            type="email"
-            label="Email"
-            placeholder="Enter your email"
-            error={touched.email && Boolean(errors.email)}
-            helperText={touched.email && errors.email}
+            name="username"
+            type="text"
+            label="Username"
+            placeholder="Enter your username"
+            error={touched.username && Boolean(errors.username)}
+            helperText={touched.username && errors.username}
           />
 
           <StyledField
@@ -102,20 +104,20 @@ const LoginForm: FC = () => {
                   {showPassword ? (
                     <Visibility
                       onClick={handleClickShowPassword}
-                      sx={{
-                        cursor: "pointer",
-                        color: colors.green[500],
-                        ":hover": { color: colors.green[300] },
-                      }}
+                      sx={
+                        touched.password && Boolean(errors.password)
+                          ? commonStyles.error
+                          : commonStyles.iconInput
+                      }
                     />
                   ) : (
                     <VisibilityOff
                       onClick={handleClickShowPassword}
-                      sx={{
-                        color: colors.green[500],
-                        cursor: "pointer",
-                        ":hover": { color: colors.green[300] },
-                      }}
+                      sx={
+                        touched.password && Boolean(errors.password)
+                          ? commonStyles.error
+                          : commonStyles.iconInput
+                      }
                     />
                   )}
                 </InputAdornment>
@@ -128,34 +130,30 @@ const LoginForm: FC = () => {
             variant="contained"
             color="success"
             disabled={isSubmitting || !isValid || !dirty}
-            sx={{ height: 45, boxSizing: "border-box" }}
+            sx={commonStyles.button}
             onClick={submitForm}
           >
             {isSubmitting ? (
-              <CircularProgress size={24} />
+              <CircularProgress size={24} color="success" />
             ) : (
               <Typography variant="button">Login</Typography>
             )}
           </Button>
 
           <Box>
-            <Typography
-              variant="subtitle2"
-              component="span"
-              sx={{ marginRight: 1 }}
-            >
+            <Typography variant="subtitle2" component="span" marginRight={1}>
               Don't have an account?
             </Typography>
 
             <Link
               variant="button"
-              sx={{ cursor: "pointer", color: colors.green[300] }}
+              sx={commonStyles.link}
               onClick={() => navigate(routes.register)}
             >
               Register
             </Link>
           </Box>
-        </Form>
+        </StyledForm>
       )}
     </Formik>
   );

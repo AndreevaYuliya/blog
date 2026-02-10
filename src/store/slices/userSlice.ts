@@ -1,11 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  posts: string[];
-};
+import { User } from "../../types/User";
 
 const initialState: { user: User | null } = {
   user: null,
@@ -20,7 +15,7 @@ const userSlice = createSlice({
     },
     clearUser: (state) => {
       state.user = null;
-      localStorage.removeItem("user");
+      localStorage.removeItem("token");
     },
   },
 });

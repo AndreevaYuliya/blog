@@ -1,6 +1,18 @@
-import { Field } from "formik";
-import { colors } from "@mui/material";
+import { Field, Form } from "formik";
+import { colors, MenuItem } from "@mui/material";
 import { styled } from "@mui/material/styles";
+
+export const StyledForm = styled(Form)({
+  display: "flex",
+  flexDirection: "column",
+  gap: 15,
+  boxSizing: "border-box",
+  borderRadius: 10,
+  boxShadow: "0 0 20px rgba(0, 0, 0, 0.2)",
+  padding: 20,
+  width: 340,
+  marginTop: 50,
+});
 
 export const StyledField = styled(Field)({
   "& .MuiOutlinedInput-root": {
@@ -51,6 +63,18 @@ export const StyledField = styled(Field)({
     },
   "&:hover .MuiInputLabel-root.Mui-error.Mui-focused": {
     color: colors.red[300],
+  },
+});
+
+export const StyledMenuItem = styled(MenuItem)({
+  "&.Mui-selected": {
+    backgroundColor: colors.green[500],
+  },
+  "&.Mui-selected:hover": {
+    backgroundColor: colors.green[300],
+  },
+  "&:hover": {
+    backgroundColor: colors.green[300],
   },
 });
 
